@@ -4,7 +4,7 @@
  * includes search parameters in the hash portion of the url.
  * @returns The url search string.
  */
-export const getLocationSearch = () => {
+export const getLocationSearch = (): string => {
     // Return location.search if it exists
     if (window.location.search) {
         return window.location.search;

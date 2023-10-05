@@ -29,6 +29,7 @@ import 'elements/emby-button/paper-icon-button-light';
 
 import './card.scss';
 import '../guide/programs.scss';
+import { isResizable, isUsingLiveTvNaming, resolveCardCssClassNames, resolveMixedShapeByAspectRatio } from './extracted';
 
 const enableFocusTransform = !browser.slow && !browser.edge;
 
@@ -45,24 +46,6 @@ export function getCardsHtml(items, options) {
     }
 
     return buildCardsHtmlInternal(items, options);
-}
-
-/**
-         * Checks if the window is resizable.
-         * @param {number} windowWidth - Width of the device's screen.
-         * @returns {boolean} - Result of the check.
-         */
-function isResizable(windowWidth) {
-    const screen = window.screen;
-    if (screen) {
-        const screenWidth = screen.availWidth;
-
-        if ((screenWidth - windowWidth) > 20) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 /**
@@ -488,15 +471,6 @@ function getCardTextLines(lines, cssClass, forceLines, isOuterFooter, cardLayout
 }
 
 /**
-         * Determines if the item is live TV.
-         * @param {Object} item - Item to use for the check.
-         * @returns {boolean} Flag showing if the item is live TV.
-         */
-function isUsingLiveTvNaming(item) {
-    return item.Type === 'Program' || item.Type === 'Timer' || item.Type === 'Recording';
-}
-
-/**
          * Returns the air time text for the item based on the given times.
          * @param {object} item - Item used to generate the air time text.
          * @param {boolean} showAirDateTime - ISO8601 date for the start of the show.
@@ -574,7 +548,7 @@ function getCardFooterText(item, apiClient, options, footerClass, progressHtml, 
             } else {
                 lines.push(escapeHtml(item.SeriesName));
             }
-        } else if (isUsingLiveTvNaming(item)) {
+        } else if (isUsingLiveTvNaming(item.Type)) {
             lines.push(escapeHtml(item.Name));
 
             if (!item.EpisodeTitle && !item.IndexNumber) {
@@ -616,7 +590,7 @@ function getCardFooterText(item, apiClient, options, footerClass, progressHtml, 
                 item.AlbumArtists[0].IsFolder = true;
                 lines.push(getTextActionButton(item.AlbumArtists[0], null, serverId));
             } else {
-                lines.push(escapeHtml(isUsingLiveTvNaming(item) ? item.Name : (item.SeriesName || item.Series || item.Album || item.AlbumArtist || '')));
+                lines.push(escapeHtml(isUsingLiveTvNaming(item.Type) ? item.Name : (item.SeriesName || item.Series || item.Album || item.AlbumArtist || '')));
             }
         }
 
@@ -918,50 +892,10 @@ function buildCard(index, item, apiClient, options) {
     let shape = options.shape;
 
     if (shape === 'mixed') {
-        shape = null;
-
-        const primaryImageAspectRatio = item.PrimaryImageAspectRatio;
-
-        if (primaryImageAspectRatio) {
-            if (primaryImageAspectRatio >= 1.33) {
-                shape = 'mixedBackdrop';
-            } else if (primaryImageAspectRatio > 0.71) {
-                shape = 'mixedSquare';
-            } else {
-                shape = 'mixedPortrait';
-            }
-        }
-
-        shape = shape || 'mixedSquare';
+        shape = resolveMixedShapeByAspectRatio(item.PrimaryImageAspectRatio);
     }
 
     // TODO move card creation code to Card component
-
-    let className = 'card';
-
-    if (shape) {
-        className += ' ' + shape + 'Card';
-    }
-
-    if (options.cardCssClass) {
-        className += ' ' + options.cardCssClass;
-    }
-
-    if (options.cardClass) {
-        className += ' ' + options.cardClass;
-    }
-
-    if (layoutManager.desktop) {
-        className += ' card-hoverable';
-    }
-
-    if (layoutManager.tv) {
-        className += ' show-focus';
-
-        if (enableFocusTransform) {
-            className += ' show-animation';
-        }
-    }
 
     const imgInfo = getCardImageUrl(item, apiClient, options, shape);
     const imgUrl = imgInfo.imgUrl;
@@ -1073,10 +1007,6 @@ function buildCard(index, item, apiClient, options) {
         }
     }
 
-    if (options.showChildCountIndicator && item.ChildCount) {
-        className += ' groupedCard';
-    }
-
     // cardBox can be it's own separate element if an outer footer is ever needed
     let cardImageContainerOpen;
     let cardImageContainerClose = '';
@@ -1178,16 +1108,24 @@ function buildCard(index, item, apiClient, options) {
     let ariaLabelAttribute = '';
 
     if (tagName === 'button') {
-        className += ' itemAction';
         actionAttribute = ' data-action="' + action + '"';
         ariaLabelAttribute = ` aria-label="${escapeHtml(item.Name)}"`;
     } else {
         actionAttribute = '';
     }
 
-    if (item.Type !== 'MusicAlbum' && item.Type !== 'MusicArtist' && item.Type !== 'Audio') {
-        className += ' card-withuserdata';
-    }
+    const className = resolveCardCssClassNames({
+        shape: shape,
+        cardCssClass: options.cardCssClass,
+        cardClass: options.cardClass,
+        isTV: layoutManager.tv,
+        enableFocusTransform: enableFocusTransform,
+        isDesktop: layoutManager.desktop,
+        showChildCountIndicator: options.showChildCountIndicator,
+        childCount: item.ChildCount,
+        tagName: tagName,
+        itemType: item.Type
+    });
 
     const positionTicksData = item.UserData?.PlaybackPositionTicks ? (' data-positionticks="' + item.UserData.PlaybackPositionTicks + '"') : '';
     const collectionIdData = options.collectionId ? (' data-collectionid="' + options.collectionId + '"') : '';
@@ -1296,7 +1234,7 @@ export function getDefaultText(item, options) {
         return '<span class="cardImageIcon material-icons ' + options.defaultCardImageIcon + '" aria-hidden="true"></span>';
     }
 
-    const defaultName = isUsingLiveTvNaming(item) ? item.Name : itemHelper.getDisplayName(item);
+    const defaultName = isUsingLiveTvNaming(item.Type) ? item.Name : itemHelper.getDisplayName(item);
     return '<div class="cardText cardDefaultText">' + escapeHtml(defaultName) + '</div>';
 }
 
