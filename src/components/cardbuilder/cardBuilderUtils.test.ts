@@ -9,7 +9,7 @@ import {
     resolveAction, resolveCardBoxCssClasses,
     resolveCardCssClasses,
     resolveCardImageContainerCssClasses,
-    resolveMixedShapeByAspectRatio
+    resolveMixedShapeByAspectRatio, resolveOverlayButtons
 } from './cardBuilderUtils';
 
 describe('getDesiredAspect', () => {
@@ -664,6 +664,109 @@ describe('resolveCardBoxCssClasses', () => {
     test('card layout', () => expect(resolveCardBoxCssClasses({ cardLayout: true, hasOuterCardFooter: false })).toEqual('cardBox visualCardBox'));
 
     test('has outer card footer', () => expect(resolveCardBoxCssClasses({ cardLayout: false, hasOuterCardFooter: true })).toEqual('cardBox cardBox-bottompadded'));
+});
+
+describe('resolveOverlayButtons', () => {
+    const centerPlayButton = '<button is="paper-icon-button-light" class="cardOverlayButton cardOverlayButton-br itemAction cardOverlayButton-centered" data-action="play" title="Play"><span class="material-icons cardOverlayButtonIcon play_arrow" aria-hidden="true"></span></button>';
+    const overlayMoreButton = '<button is="paper-icon-button-light" class="cardOverlayButton cardOverlayButton-br itemAction" data-action="menu" title="ButtonMore"><span class="material-icons cardOverlayButtonIcon more_vert" aria-hidden="true"></span></button>';
+    const overlayPlayButton = '<button is="paper-icon-button-light" class="cardOverlayButton cardOverlayButton-br itemAction" data-action="play" title="Play"><span class="material-icons cardOverlayButtonIcon play_arrow" aria-hidden="true"></span></button>';
+
+    const baseOptions = {
+        isMobileLayout: false,
+        cardLayout: false,
+        centerPlayButton: false,
+        isItemPlaceholder: false,
+        overlayInfoButton: false,
+        overlayMoreButton: false,
+        overlayPlayButton: false
+    };
+    const noOpTranslate = (key: string) => (key);
+
+    test('non-mobile layout', () => {
+        expect(resolveOverlayButtons({}, noOpTranslate, {
+            ...baseOptions,
+            isMobileLayout: false
+        })).toEqual('');
+    });
+
+    describe('mobile layout', () => {
+        test('center play button only', () => {
+            expect(resolveOverlayButtons({}, noOpTranslate, {
+                ...baseOptions,
+                isMobileLayout: true,
+                centerPlayButton: true
+            })).toEqual(centerPlayButton);
+        });
+
+        test('overlay more button only', () => {
+            expect(resolveOverlayButtons({}, noOpTranslate, {
+                ...baseOptions,
+                isMobileLayout: true,
+                overlayMoreButton: true
+            })).toEqual(overlayMoreButton);
+        });
+
+        test('overlay play button only - via options', () => {
+            expect(resolveOverlayButtons({}, noOpTranslate, {
+                ...baseOptions,
+                isMobileLayout: true,
+                overlayPlayButton: true
+            })).toEqual(overlayPlayButton);
+        });
+
+        test('overlay play button only - via MediaType', () => {
+            expect(resolveOverlayButtons({
+                MediaType: 'Video'
+            }, noOpTranslate, {
+                ...baseOptions,
+                isMobileLayout: true,
+                overlayPlayButton: false
+            })).toEqual(overlayPlayButton);
+        });
+
+        test('overlay play button only - does not render if item is placeholder', () => {
+            expect(resolveOverlayButtons({
+                IsPlaceHolder: true
+            }, noOpTranslate, {
+                ...baseOptions,
+                isMobileLayout: true,
+                overlayPlayButton: true
+            })).toEqual('');
+        });
+
+        test('overlay play button only - does not render if item is of type Person', () => {
+            expect(resolveOverlayButtons({
+                Type: 'Person'
+            }, noOpTranslate, {
+                ...baseOptions,
+                isMobileLayout: true,
+                overlayPlayButton: true
+            })).toEqual('');
+        });
+
+        test('overlay play button only - does not render if LocationType is "Virtual", MediaType is provided, item type is not "Program"', () => {
+            expect(resolveOverlayButtons({
+                LocationType: 'Virtual',
+                IsPlaceHolder: false,
+                Type: 'x',
+                MediaType: 'x'
+            }, noOpTranslate, {
+                ...baseOptions,
+                isMobileLayout: true,
+                overlayPlayButton: true
+            })).toEqual('');
+        });
+
+        test('all buttons rendered', () => {
+            expect(resolveOverlayButtons({}, noOpTranslate, {
+                ...baseOptions,
+                isMobileLayout: true,
+                centerPlayButton: true,
+                overlayPlayButton: true,
+                overlayMoreButton: true
+            })).toEqual(`${centerPlayButton}${overlayPlayButton}${overlayMoreButton}`);
+        });
+    });
 });
 
 describe('getDefaultBackgroundClass', () => {

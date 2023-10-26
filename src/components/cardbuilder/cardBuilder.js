@@ -36,10 +36,11 @@ import {
     resolveCardBoxCssClasses,
     resolveCardCssClasses,
     resolveCardImageContainerCssClasses,
-    resolveMixedShapeByAspectRatio
+    resolveMixedShapeByAspectRatio, resolveOverlayButtons
 } from './cardBuilderUtils';
 
 const enableFocusTransform = !browser.slow && !browser.edge;
+const logoHeight = 40;
 
 /**
  * Generate the HTML markup for cards for a set of items.
@@ -863,7 +864,6 @@ function buildCard(index, item, apiClient, options) {
     });
 
     let shape = options.shape;
-
     if (shape === 'mixed') {
         shape = resolveMixedShapeByAspectRatio(item.PrimaryImageAspectRatio);
     }
@@ -872,9 +872,6 @@ function buildCard(index, item, apiClient, options) {
 
     const imgInfo = getCardImageUrl(item, apiClient, options, shape);
     const imgUrl = imgInfo.imgUrl;
-    const blurhash = imgInfo.blurhash;
-    const forceName = imgInfo.forceName;
-    const overlayText = options.overlayText;
 
     const cardImageContainerClasses = resolveCardImageContainerCssClasses({
         itemType: item.Type,
@@ -885,13 +882,9 @@ function buildCard(index, item, apiClient, options) {
 
     let footerCssClass;
     let progressHtml = indicators.getProgressBarHtml(item);
-
     let innerCardFooter = '';
-
     let footerOverlayed = false;
-
     let logoUrl;
-    const logoHeight = 40;
 
     if (options.showChannelLogo && item.ChannelPrimaryImageTag) {
         logoUrl = apiClient.getScaledImageUrl(item.ChannelId, {
@@ -907,11 +900,11 @@ function buildCard(index, item, apiClient, options) {
         });
     }
 
-    if (overlayText) {
+    if (options.overlayText) {
         logoUrl = null;
 
         footerCssClass = progressHtml ? 'innerCardFooter fullInnerCardFooter' : 'innerCardFooter';
-        innerCardFooter += getCardFooterText(item, apiClient, options, footerCssClass, progressHtml, { forceName, overlayText, isOuterFooter: false }, { imgUrl, logoUrl });
+        innerCardFooter += getCardFooterText(item, apiClient, options, footerCssClass, progressHtml, { forceName: imgInfo.forceName, overlayText: options.overlayText, isOuterFooter: false }, { imgUrl, logoUrl });
         footerOverlayed = true;
     } else if (progressHtml) {
         innerCardFooter += '<div class="innerCardFooter fullInnerCardFooter innerCardFooterClear">';
@@ -927,7 +920,7 @@ function buildCard(index, item, apiClient, options) {
     }
 
     let outerCardFooter = '';
-    if (!overlayText && !footerOverlayed) {
+    if (!options.overlayText && !footerOverlayed) {
         footerCssClass = options.cardLayout ? 'cardFooter' : 'cardFooter cardFooter-transparent';
 
         if (logoUrl) {
@@ -938,7 +931,7 @@ function buildCard(index, item, apiClient, options) {
             logoUrl = null;
         }
 
-        outerCardFooter = getCardFooterText(item, apiClient, options, footerCssClass, progressHtml, { forceName, overlayText, isOuterFooter: true }, { imgUrl, logoUrl });
+        outerCardFooter = getCardFooterText(item, apiClient, options, footerCssClass, progressHtml, { forceName: imgInfo.forceName, overlayText: options.overlayText, isOuterFooter: true }, { imgUrl, logoUrl });
     }
 
     const cardBoxClass = resolveCardBoxCssClasses({
@@ -946,28 +939,14 @@ function buildCard(index, item, apiClient, options) {
         cardLayout: options.cardLayout
     });
 
-    let overlayButtons = '';
-    if (layoutManager.mobile) {
-        let overlayPlayButton = options.overlayPlayButton;
-
-        if (overlayPlayButton == null && !options.overlayMoreButton && !options.overlayInfoButton && !options.cardLayout) {
-            overlayPlayButton = item.MediaType === 'Video';
-        }
-
-        const btnCssClass = 'cardOverlayButton cardOverlayButton-br itemAction';
-
-        if (options.centerPlayButton) {
-            overlayButtons += `<button is="paper-icon-button-light" class="${btnCssClass} cardOverlayButton-centered" data-action="play" title="${globalize.translate('Play')}"><span class="material-icons cardOverlayButtonIcon play_arrow" aria-hidden="true"></span></button>`;
-        }
-
-        if (overlayPlayButton && !item.IsPlaceHolder && (item.LocationType !== 'Virtual' || !item.MediaType || item.Type === 'Program') && item.Type !== 'Person') {
-            overlayButtons += `<button is="paper-icon-button-light" class="${btnCssClass}" data-action="play" title="${globalize.translate('Play')}"><span class="material-icons cardOverlayButtonIcon play_arrow" aria-hidden="true"></span></button>`;
-        }
-
-        if (options.overlayMoreButton) {
-            overlayButtons += `<button is="paper-icon-button-light" class="${btnCssClass}" data-action="menu" title="${globalize.translate('ButtonMore')}"><span class="material-icons cardOverlayButtonIcon more_vert" aria-hidden="true"></span></button>`;
-        }
-    }
+    const overlayButtonsHtml = resolveOverlayButtons(item, globalize.translate, {
+        isMobileLayout: layoutManager.mobile,
+        cardLayout: options.cardLayout,
+        centerPlayButton: options.centerPlayButton,
+        overlayInfoButton: options.overlayInfoButton,
+        overlayMoreButton: options.overlayMoreButton,
+        overlayPlayButton: options.overlayPlayButton
+    });
 
     // cardBox can be it's own separate element if an outer footer is ever needed
     let cardImageContainerOpen;
@@ -975,16 +954,14 @@ function buildCard(index, item, apiClient, options) {
     let cardBoxClose = '';
     let cardScalableClose = '';
 
-    const cardContentClass = 'cardContent';
-
     let blurhashAttrib = '';
-    if (blurhash && blurhash.length > 0) {
-        blurhashAttrib = 'data-blurhash="' + blurhash + '"';
+    if (imgInfo.blurhash && imgInfo.blurhash.length > 0) {
+        blurhashAttrib = 'data-blurhash="' + imgInfo.blurhash + '"';
     }
 
     if (layoutManager.tv) {
         // Don't use the IMG tag with safari because it puts a white border around it
-        cardImageContainerOpen = imgUrl ? ('<div class="' + cardImageContainerClasses + ' ' + cardContentClass + ' lazy" data-src="' + imgUrl + '" ' + blurhashAttrib + '>') : ('<div class="' + cardImageContainerClasses + ' ' + cardContentClass + '">');
+        cardImageContainerOpen = imgUrl ? ('<div class="' + cardImageContainerClasses + ' cardContent lazy" data-src="' + imgUrl + '" ' + blurhashAttrib + '>') : ('<div class="' + cardImageContainerClasses + ' cardContent">');
 
         cardImageContainerClose = '</div>';
     } else {
@@ -992,12 +969,10 @@ function buildCard(index, item, apiClient, options) {
 
         const url = appRouter.getRouteUrl(item);
         // Don't use the IMG tag with safari because it puts a white border around it
-        cardImageContainerOpen = imgUrl ? ('<a href="' + url + '" data-action="' + action + '" class="' + cardImageContainerClasses + ' ' + cardContentClass + ' itemAction lazy" data-src="' + imgUrl + '" ' + blurhashAttrib + cardImageContainerAriaLabelAttribute + '>') : ('<a href="' + url + '" data-action="' + action + '" class="' + cardImageContainerClasses + ' ' + cardContentClass + ' itemAction"' + cardImageContainerAriaLabelAttribute + '>');
+        cardImageContainerOpen = imgUrl ? ('<a href="' + url + '" data-action="' + action + '" class="' + cardImageContainerClasses + ' cardContent itemAction lazy" data-src="' + imgUrl + '" ' + blurhashAttrib + cardImageContainerAriaLabelAttribute + '>') : ('<a href="' + url + '" data-action="' + action + '" class="' + cardImageContainerClasses + ' cardContent itemAction"' + cardImageContainerAriaLabelAttribute + '>');
 
         cardImageContainerClose = '</a>';
     }
-
-    const cardScalableClass = 'cardScalable';
 
     let cardPadderIcon = '';
 
@@ -1010,7 +985,7 @@ function buildCard(index, item, apiClient, options) {
         });
     }
 
-    cardImageContainerOpen = `<div class="${cardBoxClass}"><div class="${cardScalableClass}"><div class="cardPadder cardPadder-${shape}">${cardPadderIcon}</div>${cardImageContainerOpen}`;
+    cardImageContainerOpen = `<div class="${cardBoxClass}"><div class="cardScalable"><div class="cardPadder cardPadder-${shape}">${cardPadderIcon}</div>${cardImageContainerOpen}`;
     cardBoxClose = '</div>';
     cardScalableClose = '</div>';
 
@@ -1049,7 +1024,7 @@ function buildCard(index, item, apiClient, options) {
         cardImageContainerOpen += getDefaultText(item, options);
     }
 
-    const tagName = (layoutManager.tv) && !overlayButtons ? 'button' : 'div';
+    const tagName = (layoutManager.tv) && !overlayButtonsHtml ? 'button' : 'div';
 
     const nameWithPrefix = (item.SortName || item.Name || '');
     let prefix = nameWithPrefix.substring(0, Math.min(3, nameWithPrefix.length));
@@ -1107,7 +1082,7 @@ function buildCard(index, item, apiClient, options) {
         additionalCardContent += getHoverMenuHtml(item, action);
     }
 
-    return '<' + tagName + ' data-index="' + index + '"' + timerAttributes + actionAttribute + ' data-isfolder="' + (item.IsFolder || false) + '" data-serverid="' + (item.ServerId || options.serverId) + '" data-id="' + (item.Id || item.ItemId) + '" data-type="' + item.Type + '"' + mediaTypeData + collectionTypeData + channelIdData + pathData + positionTicksData + collectionIdData + playlistIdData + contextData + parentIdData + startDate + endDate + ' data-prefix="' + escapeHtml(prefix) + '" class="' + className + '"' + ariaLabelAttribute + '>' + cardImageContainerOpen + innerCardFooter + cardImageContainerClose + overlayButtons + additionalCardContent + cardScalableClose + outerCardFooter + cardBoxClose + '</' + tagName + '>';
+    return '<' + tagName + ' data-index="' + index + '"' + timerAttributes + actionAttribute + ' data-isfolder="' + (item.IsFolder || false) + '" data-serverid="' + (item.ServerId || options.serverId) + '" data-id="' + (item.Id || item.ItemId) + '" data-type="' + item.Type + '"' + mediaTypeData + collectionTypeData + channelIdData + pathData + positionTicksData + collectionIdData + playlistIdData + contextData + parentIdData + startDate + endDate + ' data-prefix="' + escapeHtml(prefix) + '" class="' + className + '"' + ariaLabelAttribute + '>' + cardImageContainerOpen + innerCardFooter + cardImageContainerClose + overlayButtonsHtml + additionalCardContent + cardScalableClose + outerCardFooter + cardBoxClose + '</' + tagName + '>';
 }
 
 /**

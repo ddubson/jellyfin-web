@@ -124,6 +124,43 @@ export const resolveCardBoxCssClasses = (opts: { cardLayout: boolean, hasOuterCa
 };
 
 /**
+ * Resolves overlay button HTML markup
+ * @param item item for which to render an overlay button
+ * @param translate translation function of overlay button label for various languages
+ * @param opts options to determine overlay button markup
+ */
+export const resolveOverlayButtons = (item: any, translate: (key: string) => string, opts: { isMobileLayout: boolean, centerPlayButton: boolean, overlayPlayButton: boolean, overlayMoreButton: boolean, overlayInfoButton: boolean, cardLayout: boolean }): string => {
+    if (!opts.isMobileLayout) {
+        return '';
+    }
+
+    const overlayButtons = [];
+    const btnCssClass = 'cardOverlayButton cardOverlayButton-br itemAction';
+
+    let overlayPlayButton = opts.overlayPlayButton;
+    if (!overlayPlayButton && !opts.overlayMoreButton && !opts.overlayInfoButton && !opts.cardLayout) {
+        overlayPlayButton = item.MediaType === 'Video';
+    }
+
+    if (opts.centerPlayButton) {
+        overlayButtons.push(`<button is="paper-icon-button-light" class="${btnCssClass} cardOverlayButton-centered" data-action="play" title="${translate('Play')}"><span class="material-icons cardOverlayButtonIcon play_arrow" aria-hidden="true"></span></button>`);
+    }
+
+    if (overlayPlayButton
+        && !item.IsPlaceHolder
+        && (item.LocationType !== 'Virtual' || !item.MediaType || item.Type === 'Program')
+        && item.Type !== 'Person') {
+        overlayButtons.push(`<button is="paper-icon-button-light" class="${btnCssClass}" data-action="play" title="${translate('Play')}"><span class="material-icons cardOverlayButtonIcon play_arrow" aria-hidden="true"></span></button>`);
+    }
+
+    if (opts.overlayMoreButton) {
+        overlayButtons.push(`<button is="paper-icon-button-light" class="${btnCssClass}" data-action="menu" title="${translate('ButtonMore')}"><span class="material-icons cardOverlayButtonIcon more_vert" aria-hidden="true"></span></button>`);
+    }
+
+    return overlayButtons.join('');
+};
+
+/**
  * Returns the default background class for a card based on a string.
  * @param {?string} [str] - Text used to generate the background class.
  * @returns {string} CSS classes for default card backgrounds.
