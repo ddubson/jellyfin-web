@@ -1,7 +1,14 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
+vi.mock('../../components/apphost.js', () => ({}));
+vi.mock('../../components/itemHelper.js', () => ({
+    default: {
+        getDisplayName: vi.fn(() => 'resolved from item helper - card name')
+    }
+}));
+
 import {
     getDefaultBackgroundClass,
-    getDefaultColorIndex,
+    getDefaultColorIndex, getDefaultText,
     getDesiredAspect,
     getPostersPerRow,
     isResizable,
@@ -11,6 +18,67 @@ import {
     resolveCardImageContainerCssClasses,
     resolveMixedShapeByAspectRatio, resolveOverlayButtons
 } from './cardBuilderUtils';
+import { BaseItemKind } from '@jellyfin/sdk/lib/generated-client/models/base-item-kind';
+
+describe('getDefaultText', () => {
+    test('collection types', () => {
+        const collectionTypes = {
+            'movies': 'video_library',
+            'music': 'library_music',
+            'photos': 'photo_library',
+            'livetv': 'live_tv',
+            'tvshows': 'tv',
+            'trailers': 'local_movies',
+            'homevideos': 'photo_library',
+            'musicvideos': 'music_video',
+            'books': 'library_books',
+            'channels': 'videocam',
+            'playlists': 'view_list'
+        };
+
+        for (const [collectionType, expectedClass] of Object.entries(collectionTypes)) {
+            expect(getDefaultText({ CollectionType: collectionType }, {})).toEqual(`<span class="cardImageIcon material-icons ${expectedClass}" aria-hidden="true"></span>`);
+        }
+    });
+
+    test('item types', () => {
+        const itemTypes = {
+            [BaseItemKind.MusicAlbum]: 'album',
+            [BaseItemKind.MusicArtist]: 'person',
+            [BaseItemKind.Person]: 'person',
+            [BaseItemKind.Audio]: 'audiotrack',
+            [BaseItemKind.Movie]: 'movie',
+            [BaseItemKind.Episode]: 'tv',
+            [BaseItemKind.Series]: 'tv',
+            [BaseItemKind.Program]: 'live_tv',
+            [BaseItemKind.Book]: 'book',
+            [BaseItemKind.Folder]: 'folder',
+            [BaseItemKind.BoxSet]: 'collections',
+            [BaseItemKind.Playlist]: 'view_list',
+            [BaseItemKind.Photo]: 'photo',
+            [BaseItemKind.PhotoAlbum]: 'photo_album'
+        };
+        for (const [itemType, expectedClass] of Object.entries(itemTypes)) {
+            expect(getDefaultText({ Type: (itemType as BaseItemKind) }, {})).toEqual(`<span class="cardImageIcon material-icons ${expectedClass}" aria-hidden="true"></span>`);
+        }
+    });
+
+    test('default card image icon', () => {
+        expect(getDefaultText({}, { defaultCardImageIcon: 'icon' })).toEqual(
+            '<span class="cardImageIcon material-icons icon" aria-hidden="true"></span>'
+        );
+    });
+
+    test('default text', () => {
+        expect(getDefaultText({ Type: 'Recording', Name: 'Test card' }, {})).toEqual(
+            '<div class="cardText cardDefaultText">Test card</div>'
+        );
+
+        expect(getDefaultText({ Type: 'Year' }, {})).toEqual(
+            '<div class="cardText cardDefaultText">resolved from item helper - card name</div>'
+        );
+    });
+});
 
 describe('getDesiredAspect', () => {
     test('"portrait" (case insensitive)', () => {

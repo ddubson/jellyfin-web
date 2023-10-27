@@ -11,7 +11,6 @@ import datetime from 'scripts/datetime';
 import dom from 'scripts/dom';
 import globalize from 'scripts/globalize';
 import { getBackdropShape, getPortraitShape, getSquareShape } from 'utils/card';
-import imageHelper from 'utils/image';
 
 import focusManager from '../focusManager';
 import imageLoader from '../images/imageLoader';
@@ -28,11 +27,12 @@ import 'elements/emby-button/paper-icon-button-light';
 import './card.scss';
 import '../guide/programs.scss';
 import {
+    getDefaultText,
     getDesiredAspect,
     getPostersPerRow,
     isResizable,
     isUsingLiveTvNaming,
-    resolveAction,
+    resolveAction, resolveBlurHashAttribute,
     resolveCardBoxCssClasses,
     resolveCardCssClasses,
     resolveCardImageContainerCssClasses,
@@ -1124,54 +1124,6 @@ function getHoverMenuHtml(item, action) {
 }
 
 /**
- * Generates the text or icon used for default card backgrounds.
- * @param {object} item - Item used to generate the card overlay.
- * @param {object} options - Options used to generate the card overlay.
- * @returns {string} HTML markup of the card overlay.
- */
-export function getDefaultText(item, options) {
-    if (item.CollectionType) {
-        return '<span class="cardImageIcon material-icons ' + imageHelper.getLibraryIcon(item.CollectionType) + '" aria-hidden="true"></span>';
-    }
-
-    switch (item.Type) {
-        case 'MusicAlbum':
-            return '<span class="cardImageIcon material-icons album" aria-hidden="true"></span>';
-        case 'MusicArtist':
-        case 'Person':
-            return '<span class="cardImageIcon material-icons person" aria-hidden="true"></span>';
-        case 'Audio':
-            return '<span class="cardImageIcon material-icons audiotrack" aria-hidden="true"></span>';
-        case 'Movie':
-            return '<span class="cardImageIcon material-icons movie" aria-hidden="true"></span>';
-        case 'Episode':
-        case 'Series':
-            return '<span class="cardImageIcon material-icons tv" aria-hidden="true"></span>';
-        case 'Program':
-            return '<span class="cardImageIcon material-icons live_tv" aria-hidden="true"></span>';
-        case 'Book':
-            return '<span class="cardImageIcon material-icons book" aria-hidden="true"></span>';
-        case 'Folder':
-            return '<span class="cardImageIcon material-icons folder" aria-hidden="true"></span>';
-        case 'BoxSet':
-            return '<span class="cardImageIcon material-icons collections" aria-hidden="true"></span>';
-        case 'Playlist':
-            return '<span class="cardImageIcon material-icons view_list" aria-hidden="true"></span>';
-        case 'Photo':
-            return '<span class="cardImageIcon material-icons photo" aria-hidden="true"></span>';
-        case 'PhotoAlbum':
-            return '<span class="cardImageIcon material-icons photo_album" aria-hidden="true"></span>';
-    }
-
-    if (options?.defaultCardImageIcon) {
-        return '<span class="cardImageIcon material-icons ' + options.defaultCardImageIcon + '" aria-hidden="true"></span>';
-    }
-
-    const defaultName = isUsingLiveTvNaming(item.Type) ? item.Name : itemHelper.getDisplayName(item);
-    return '<div class="cardText cardDefaultText">' + escapeHtml(defaultName) + '</div>';
-}
-
-/**
  * Builds a set of cards and inserts them into the page.
  * @param {Array} items - Array of items used to build the cards.
  * @param {options} options - Options of the cards to build.
@@ -1386,7 +1338,6 @@ export function onSeriesTimerCancelled(cancelledTimerId, itemsContainer) {
 
 export default {
     getCardsHtml: getCardsHtml,
-    getDefaultText: getDefaultText,
     buildCards: buildCards,
     onUserDataChanged: onUserDataChanged,
     onTimerCreated: onTimerCreated,

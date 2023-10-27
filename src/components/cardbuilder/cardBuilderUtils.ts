@@ -1,5 +1,10 @@
 import { randomInt } from '../../utils/number';
 import classNames from 'classnames';
+import imageHelper from '../../utils/image';
+import { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
+import { CardOptions } from '../../types/cardOptions';
+import escapeHtml from 'escape-html';
+import itemHelper from '../itemHelper';
 
 const ASPECT_RATIOS = {
     portrait: (2 / 3),
@@ -7,6 +12,43 @@ const ASPECT_RATIOS = {
     square: 1,
     banner: (1000 / 185)
 };
+
+/**
+ * Generates the text or icon used for default card backgrounds.
+ * @param {object} item - Item used to generate the card overlay.
+ * @param {object} options - Options used to generate the card overlay.
+ * @returns {string} HTML markup of the card overlay.
+ */
+export function getDefaultText(item: BaseItemDto, options: CardOptions): string {
+    if (item.CollectionType) {
+        return '<span class="cardImageIcon material-icons ' + imageHelper.getLibraryIcon(item.CollectionType) + '" aria-hidden="true"></span>';
+    }
+
+    const textSpan = (type: string) => `<span class="cardImageIcon material-icons ${type}" aria-hidden="true"></span>`;
+    switch (item.Type) {
+        case 'MusicAlbum': return textSpan('album');
+        case 'MusicArtist': return textSpan('person');
+        case 'Person': return textSpan('person');
+        case 'Audio': return textSpan('audiotrack');
+        case 'Movie': return textSpan('movie');
+        case 'Episode': return textSpan('tv');
+        case 'Series': return textSpan('tv');
+        case 'Program': return textSpan('live_tv');
+        case 'Book': return textSpan('book');
+        case 'Folder': return textSpan('folder');
+        case 'BoxSet': return textSpan('collections');
+        case 'Playlist': return textSpan('view_list');
+        case 'Photo': return textSpan('photo');
+        case 'PhotoAlbum': return textSpan('photo_album');
+    }
+
+    if (options?.defaultCardImageIcon) {
+        return textSpan(options.defaultCardImageIcon);
+    }
+
+    const defaultName = isUsingLiveTvNaming(item.Type || '') ? item.Name : itemHelper.getDisplayName(item);
+    return '<div class="cardText cardDefaultText">' + escapeHtml(defaultName) + '</div>';
+}
 
 /**
  * Determines if the item is live TV.

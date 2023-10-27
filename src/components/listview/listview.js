@@ -11,12 +11,11 @@ import indicators from '../indicators/indicators';
 import layoutManager from '../layoutManager';
 import globalize from '../../scripts/globalize';
 import datetime from '../../scripts/datetime';
-import cardBuilder from '../cardbuilder/cardBuilder';
 import './listview.scss';
 import '../../elements/emby-ratingbutton/emby-ratingbutton';
 import '../../elements/emby-playstatebutton/emby-playstatebutton';
 import ServerConnections from '../ServerConnections';
-import { getDefaultBackgroundClass } from '../cardbuilder/cardBuilderUtils';
+import { getDefaultBackgroundClass, getDefaultText } from '../cardbuilder/cardBuilderUtils';
 
 function getIndex(item, options) {
     if (options.index === 'disc') {
@@ -280,7 +279,7 @@ export function getListViewHtml(options) {
             if (imgUrl) {
                 html += '<div data-action="' + imageAction + '" class="' + imageClass + ' lazy" data-src="' + imgUrl + '" item-icon>';
             } else {
-                html += '<div class="' + imageClass + ' cardImageContainer ' + getDefaultBackgroundClass(item.Name) + '">' + cardBuilder.getDefaultText(item, options);
+                html += '<div class="' + imageClass + ' cardImageContainer ' + getDefaultBackgroundClass(item.Name) + '">' + getDefaultText(item, options);
             }
 
             const mediaSourceCount = item.MediaSourceCount || 1;
