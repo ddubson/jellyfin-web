@@ -194,7 +194,6 @@ function buildCardsHtmlInternal(items, options) {
                     if (isVertical) {
                         html += '</div>';
                     }
-                    hasOpenSection = false;
                 }
 
                 if (isVertical) {
@@ -214,7 +213,6 @@ function buildCardsHtmlInternal(items, options) {
         if (options.rows && itemsInRow === 0) {
             if (hasOpenRow) {
                 html += '</div>';
-                hasOpenRow = false;
             }
 
             html += '<div class="cardColumn">';
