@@ -123,6 +123,12 @@ export const resolveCardBoxCssClasses = (opts: { cardLayout: boolean, hasOuterCa
     });
 };
 
+/** Resolves data blur hash attribute if blur hash exists
+ *
+ * @param blurhash determines if data attribute should be returned
+ */
+export const resolveBlurHashAttribute = (blurhash: string) => blurhash && blurhash.length > 0 ? `data-blurhash="${blurhash}"` : '';
+
 /**
  * Resolves overlay button HTML markup
  * @param item item for which to render an overlay button
@@ -137,16 +143,16 @@ export const resolveOverlayButtons = (item: any, translate: (key: string) => str
     const overlayButtons = [];
     const btnCssClass = 'cardOverlayButton cardOverlayButton-br itemAction';
 
-    let overlayPlayButton = opts.overlayPlayButton;
-    if (!overlayPlayButton && !opts.overlayMoreButton && !opts.overlayInfoButton && !opts.cardLayout) {
-        overlayPlayButton = item.MediaType === 'Video';
+    let shouldDisplayOverlayPlayButton = opts.overlayPlayButton;
+    if (!shouldDisplayOverlayPlayButton && !opts.overlayMoreButton && !opts.overlayInfoButton && !opts.cardLayout) {
+        shouldDisplayOverlayPlayButton = item.MediaType === 'Video';
     }
 
     if (opts.centerPlayButton) {
         overlayButtons.push(`<button is="paper-icon-button-light" class="${btnCssClass} cardOverlayButton-centered" data-action="play" title="${translate('Play')}"><span class="material-icons cardOverlayButtonIcon play_arrow" aria-hidden="true"></span></button>`);
     }
 
-    if (overlayPlayButton
+    if (shouldDisplayOverlayPlayButton
         && !item.IsPlaceHolder
         && (item.LocationType !== 'Virtual' || !item.MediaType || item.Type === 'Program')
         && item.Type !== 'Person') {

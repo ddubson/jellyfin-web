@@ -6,7 +6,7 @@ import {
     getPostersPerRow,
     isResizable,
     isUsingLiveTvNaming,
-    resolveAction, resolveCardBoxCssClasses,
+    resolveAction, resolveBlurHashAttribute, resolveCardBoxCssClasses,
     resolveCardCssClasses,
     resolveCardImageContainerCssClasses,
     resolveMixedShapeByAspectRatio, resolveOverlayButtons
@@ -664,6 +664,16 @@ describe('resolveCardBoxCssClasses', () => {
     test('card layout', () => expect(resolveCardBoxCssClasses({ cardLayout: true, hasOuterCardFooter: false })).toEqual('cardBox visualCardBox'));
 
     test('has outer card footer', () => expect(resolveCardBoxCssClasses({ cardLayout: false, hasOuterCardFooter: true })).toEqual('cardBox cardBox-bottompadded'));
+});
+
+describe('resolveBlurHashAttribute', () => {
+    test('blur hash attribute if blur hash exists', () => {
+        expect(resolveBlurHashAttribute('test-blur')).toEqual('data-blurhash="test-blur"');
+    });
+
+    test('empty when blur hash is not provided', () => {
+        expect(resolveBlurHashAttribute('')).toEqual('');
+    });
 });
 
 describe('resolveOverlayButtons', () => {

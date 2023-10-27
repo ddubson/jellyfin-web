@@ -880,7 +880,6 @@ function buildCard(index, item, apiClient, options) {
         imgUrl
     });
 
-    let footerCssClass;
     let progressHtml = indicators.getProgressBarHtml(item);
     let innerCardFooter = '';
     let footerOverlayed = false;
@@ -903,7 +902,7 @@ function buildCard(index, item, apiClient, options) {
     if (options.overlayText) {
         logoUrl = null;
 
-        footerCssClass = progressHtml ? 'innerCardFooter fullInnerCardFooter' : 'innerCardFooter';
+        const footerCssClass = progressHtml ? 'innerCardFooter fullInnerCardFooter' : 'innerCardFooter';
         innerCardFooter += getCardFooterText(item, apiClient, options, footerCssClass, progressHtml, { forceName: imgInfo.forceName, overlayText: options.overlayText, isOuterFooter: false }, { imgUrl, logoUrl });
         footerOverlayed = true;
     } else if (progressHtml) {
@@ -921,7 +920,7 @@ function buildCard(index, item, apiClient, options) {
 
     let outerCardFooter = '';
     if (!options.overlayText && !footerOverlayed) {
-        footerCssClass = options.cardLayout ? 'cardFooter' : 'cardFooter cardFooter-transparent';
+        let footerCssClass = options.cardLayout ? 'cardFooter' : 'cardFooter cardFooter-transparent';
 
         if (logoUrl) {
             footerCssClass += ' cardFooter-withlogo';
@@ -954,10 +953,7 @@ function buildCard(index, item, apiClient, options) {
     let cardBoxClose = '';
     let cardScalableClose = '';
 
-    let blurhashAttrib = '';
-    if (imgInfo.blurhash && imgInfo.blurhash.length > 0) {
-        blurhashAttrib = 'data-blurhash="' + imgInfo.blurhash + '"';
-    }
+    const blurhashAttrib = resolveBlurHashAttribute(imgInfo.blurhash);
 
     if (layoutManager.tv) {
         // Don't use the IMG tag with safari because it puts a white border around it
