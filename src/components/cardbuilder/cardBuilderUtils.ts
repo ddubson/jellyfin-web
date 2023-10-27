@@ -1,5 +1,10 @@
 import { randomInt } from '../../utils/number';
 import classNames from 'classnames';
+import imageHelper from '../../utils/image';
+import { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
+import { CardOptions } from '../../types/cardOptions';
+import escapeHtml from 'escape-html';
+import itemHelper from '../itemHelper';
 
 const ASPECT_RATIOS = {
     portrait: (2 / 3),
@@ -7,6 +12,43 @@ const ASPECT_RATIOS = {
     square: 1,
     banner: (1000 / 185)
 };
+
+/**
+ * Generates the text or icon used for default card backgrounds.
+ * @param {object} item - Item used to generate the card overlay.
+ * @param {object} options - Options used to generate the card overlay.
+ * @returns {string} HTML markup of the card overlay.
+ */
+export function getDefaultText(item: BaseItemDto, options: CardOptions): string {
+    if (item.CollectionType) {
+        return `<span class="cardImageIcon material-icons ${imageHelper.getLibraryIcon(item.CollectionType)}" aria-hidden="true"></span>`;
+    }
+
+    const textSpan = (type: string) => `<span class="cardImageIcon material-icons ${type}" aria-hidden="true"></span>`;
+    switch (item.Type) {
+        case 'MusicAlbum': return textSpan('album');
+        case 'MusicArtist': return textSpan('person');
+        case 'Person': return textSpan('person');
+        case 'Audio': return textSpan('audiotrack');
+        case 'Movie': return textSpan('movie');
+        case 'Episode': return textSpan('tv');
+        case 'Series': return textSpan('tv');
+        case 'Program': return textSpan('live_tv');
+        case 'Book': return textSpan('book');
+        case 'Folder': return textSpan('folder');
+        case 'BoxSet': return textSpan('collections');
+        case 'Playlist': return textSpan('view_list');
+        case 'Photo': return textSpan('photo');
+        case 'PhotoAlbum': return textSpan('photo_album');
+    }
+
+    if (options?.defaultCardImageIcon) {
+        return textSpan(options.defaultCardImageIcon);
+    }
+
+    const defaultName = isUsingLiveTvNaming(item.Type || '') ? item.Name : itemHelper.getDisplayName(item);
+    return `<div class="cardText cardDefaultText">${escapeHtml(defaultName)}</div>`;
+}
 
 /**
  * Determines if the item is live TV.
@@ -29,6 +71,16 @@ export const resolveAction = (opts: { defaultAction: string, isFolder: boolean, 
         return opts.defaultAction;
     }
 };
+
+export const resolveButtonActionAttribute = (isButton: boolean, action: string) => isButton ? `data-action="${action}"` : '';
+
+export const resolveButtonAriaLabelAttribute = (isButton: boolean, itemName: string) => isButton ? `aria-label="${escapeHtml(itemName)}"` : '';
+
+export const resolveTimerAttributes = (item: BaseItemDto) =>
+    classNames({
+        [`data-timerid="${item.TimerId}"`]: item.TimerId,
+        [`data-seriestimerid="${item.SeriesTimerId}"`]: item.SeriesTimerId
+    });
 
 /**
  * Checks if the window is resizable.
@@ -121,6 +173,49 @@ export const resolveCardBoxCssClasses = (opts: { cardLayout: boolean, hasOuterCa
         'visualCardBox': opts.cardLayout,
         'cardBox-bottompadded': opts.hasOuterCardFooter && !opts.cardLayout
     });
+};
+
+/** Resolves data blur hash attribute if blur hash exists
+ *
+ * @param blurhash determines if data attribute should be returned
+ */
+export const resolveBlurHashAttribute = (blurhash: string) => blurhash && blurhash.length > 0 ? `data-blurhash="${blurhash}"` : '';
+
+/**
+ * Resolves overlay button HTML markup
+ * @param item item for which to render an overlay button
+ * @param translate translation function of overlay button label for various languages
+ * @param opts options to determine overlay button markup
+ */
+export const resolveOverlayButtons = (item: any, translate: (key: string) => string, opts: { isMobileLayout: boolean, centerPlayButton: boolean, overlayPlayButton: boolean, overlayMoreButton: boolean, overlayInfoButton: boolean, cardLayout: boolean }): string => {
+    if (!opts.isMobileLayout) {
+        return '';
+    }
+
+    const overlayButtons = [];
+    const btnCssClass = 'cardOverlayButton cardOverlayButton-br itemAction';
+
+    let shouldDisplayOverlayPlayButton = opts.overlayPlayButton;
+    if (!shouldDisplayOverlayPlayButton && !opts.overlayMoreButton && !opts.overlayInfoButton && !opts.cardLayout) {
+        shouldDisplayOverlayPlayButton = item.MediaType === 'Video';
+    }
+
+    if (opts.centerPlayButton) {
+        overlayButtons.push(`<button is="paper-icon-button-light" class="${btnCssClass} cardOverlayButton-centered" data-action="play" title="${translate('Play')}"><span class="material-icons cardOverlayButtonIcon play_arrow" aria-hidden="true"></span></button>`);
+    }
+
+    if (shouldDisplayOverlayPlayButton
+        && !item.IsPlaceHolder
+        && (item.LocationType !== 'Virtual' || !item.MediaType || item.Type === 'Program')
+        && item.Type !== 'Person') {
+        overlayButtons.push(`<button is="paper-icon-button-light" class="${btnCssClass}" data-action="play" title="${translate('Play')}"><span class="material-icons cardOverlayButtonIcon play_arrow" aria-hidden="true"></span></button>`);
+    }
+
+    if (opts.overlayMoreButton) {
+        overlayButtons.push(`<button is="paper-icon-button-light" class="${btnCssClass}" data-action="menu" title="${translate('ButtonMore')}"><span class="material-icons cardOverlayButtonIcon more_vert" aria-hidden="true"></span></button>`);
+    }
+
+    return overlayButtons.join('');
 };
 
 /**
