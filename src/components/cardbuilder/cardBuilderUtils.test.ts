@@ -16,7 +16,7 @@ import {
     resolveAction, resolveButtonActionAttribute, resolveBlurHashAttribute, resolveCardBoxCssClasses,
     resolveCardCssClasses,
     resolveCardImageContainerCssClasses,
-    resolveMixedShapeByAspectRatio, resolveOverlayButtons, resolveButtonAriaLabelAttribute
+    resolveMixedShapeByAspectRatio, resolveOverlayButtons, resolveButtonAriaLabelAttribute, resolveTimerAttributes
 } from './cardBuilderUtils';
 import { BaseItemKind } from '@jellyfin/sdk/lib/generated-client/models/base-item-kind';
 
@@ -526,6 +526,13 @@ describe('resolveButtonAriaLabelAttribute', () => {
     test('button', () => expect(resolveButtonAriaLabelAttribute(true, 'Item')).toEqual('aria-label="Item"'));
 
     test('non-button', () => expect(resolveButtonAriaLabelAttribute(false, 'Item')).toEqual(''));
+});
+
+describe('resolveTimerAttributes', () => {
+    test('timer id only', () => expect(resolveTimerAttributes({ TimerId: 'test-id' })).toEqual('data-timerid="test-id"'));
+    test('series timer id only', () => expect(resolveTimerAttributes({ SeriesTimerId: 'test-id' })).toEqual('data-seriestimerid="test-id"'));
+    test('timer id and series timer id', () => expect(resolveTimerAttributes({ TimerId: 'test-id', SeriesTimerId: 'test-id' })).toEqual('data-timerid="test-id" data-seriestimerid="test-id"'));
+    test('no timer ids', () => expect(resolveTimerAttributes({})).toEqual(''));
 });
 
 describe('resolveMixedShapeByAspectRatio', () => {

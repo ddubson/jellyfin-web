@@ -36,7 +36,7 @@ import {
     resolveCardBoxCssClasses,
     resolveCardCssClasses,
     resolveCardImageContainerCssClasses,
-    resolveMixedShapeByAspectRatio, resolveOverlayButtons, resolveButtonAriaLabelAttribute
+    resolveMixedShapeByAspectRatio, resolveOverlayButtons, resolveButtonAriaLabelAttribute, resolveTimerAttributes
 } from './cardBuilderUtils';
 
 const enableFocusTransform = !browser.slow && !browser.edge;
@@ -1027,14 +1027,7 @@ function buildCard(index, item, apiClient, options) {
         prefix = prefix.toUpperCase();
     }
 
-    let timerAttributes = '';
-    if (item.TimerId) {
-        timerAttributes += ' data-timerid="' + item.TimerId + '"';
-    }
-    if (item.SeriesTimerId) {
-        timerAttributes += ' data-seriestimerid="' + item.SeriesTimerId + '"';
-    }
-
+    const timerAttributes = resolveTimerAttributes(item);
     const actionAttribute = resolveButtonActionAttribute(tagName === 'button', action);
     const ariaLabelAttribute = resolveButtonAriaLabelAttribute(tagName === 'button', item.Name);
 
@@ -1069,7 +1062,7 @@ function buildCard(index, item, apiClient, options) {
         additionalCardContent += getHoverMenuHtml(item, action);
     }
 
-    return '<' + tagName + ' data-index="' + index + '"' + timerAttributes + ' ' + actionAttribute + ' data-isfolder="' + (item.IsFolder || false) + '" data-serverid="' + (item.ServerId || options.serverId) + '" data-id="' + (item.Id || item.ItemId) + '" data-type="' + item.Type + '"' + mediaTypeData + collectionTypeData + channelIdData + pathData + positionTicksData + collectionIdData + playlistIdData + contextData + parentIdData + startDate + endDate + ' data-prefix="' + escapeHtml(prefix) + '" class="' + className + '" ' + ariaLabelAttribute + '>' + cardImageContainerOpen + innerCardFooter + cardImageContainerClose + overlayButtonsHtml + additionalCardContent + cardScalableClose + outerCardFooter + cardBoxClose + '</' + tagName + '>';
+    return '<' + tagName + ' data-index="' + index + '" ' + timerAttributes + ' ' + actionAttribute + ' data-isfolder="' + (item.IsFolder || false) + '" data-serverid="' + (item.ServerId || options.serverId) + '" data-id="' + (item.Id || item.ItemId) + '" data-type="' + item.Type + '"' + mediaTypeData + collectionTypeData + channelIdData + pathData + positionTicksData + collectionIdData + playlistIdData + contextData + parentIdData + startDate + endDate + ' data-prefix="' + escapeHtml(prefix) + '" class="' + className + '" ' + ariaLabelAttribute + '>' + cardImageContainerOpen + innerCardFooter + cardImageContainerClose + overlayButtonsHtml + additionalCardContent + cardScalableClose + outerCardFooter + cardBoxClose + '</' + tagName + '>';
 }
 
 /**

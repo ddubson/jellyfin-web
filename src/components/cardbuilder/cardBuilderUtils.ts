@@ -21,7 +21,7 @@ const ASPECT_RATIOS = {
  */
 export function getDefaultText(item: BaseItemDto, options: CardOptions): string {
     if (item.CollectionType) {
-        return '<span class="cardImageIcon material-icons ' + imageHelper.getLibraryIcon(item.CollectionType) + '" aria-hidden="true"></span>';
+        return `<span class="cardImageIcon material-icons ${imageHelper.getLibraryIcon(item.CollectionType)}" aria-hidden="true"></span>`;
     }
 
     const textSpan = (type: string) => `<span class="cardImageIcon material-icons ${type}" aria-hidden="true"></span>`;
@@ -47,7 +47,7 @@ export function getDefaultText(item: BaseItemDto, options: CardOptions): string 
     }
 
     const defaultName = isUsingLiveTvNaming(item.Type || '') ? item.Name : itemHelper.getDisplayName(item);
-    return '<div class="cardText cardDefaultText">' + escapeHtml(defaultName) + '</div>';
+    return `<div class="cardText cardDefaultText">${escapeHtml(defaultName)}</div>`;
 }
 
 /**
@@ -75,6 +75,12 @@ export const resolveAction = (opts: { defaultAction: string, isFolder: boolean, 
 export const resolveButtonActionAttribute = (isButton: boolean, action: string) => isButton ? `data-action="${action}"` : '';
 
 export const resolveButtonAriaLabelAttribute = (isButton: boolean, itemName: string) => isButton ? `aria-label="${escapeHtml(itemName)}"` : '';
+
+export const resolveTimerAttributes = (item: BaseItemDto) =>
+    classNames({
+        [`data-timerid="${item.TimerId}"`]: item.TimerId,
+        [`data-seriestimerid="${item.SeriesTimerId}"`]: item.SeriesTimerId
+    });
 
 /**
  * Checks if the window is resizable.
