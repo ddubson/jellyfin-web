@@ -72,6 +72,8 @@ export const resolveAction = (opts: { defaultAction: string, isFolder: boolean, 
     }
 };
 
+export const resolveActionAttribute = (isButton: boolean, action: string) => isButton ? `data-action="${action}"` : '';
+
 /**
  * Checks if the window is resizable.
  * @param {number} windowWidth - Width of the device's screen.

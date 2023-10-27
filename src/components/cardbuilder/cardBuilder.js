@@ -32,7 +32,7 @@ import {
     getPostersPerRow,
     isResizable,
     isUsingLiveTvNaming,
-    resolveAction, resolveBlurHashAttribute,
+    resolveAction, resolveActionAttribute, resolveBlurHashAttribute,
     resolveCardBoxCssClasses,
     resolveCardCssClasses,
     resolveCardImageContainerCssClasses,
@@ -1037,14 +1037,11 @@ function buildCard(index, item, apiClient, options) {
         timerAttributes += ' data-seriestimerid="' + item.SeriesTimerId + '"';
     }
 
-    let actionAttribute;
+    const actionAttribute = resolveActionAttribute(tagName === 'button', action);
     let ariaLabelAttribute = '';
 
     if (tagName === 'button') {
-        actionAttribute = ' data-action="' + action + '"';
         ariaLabelAttribute = ` aria-label="${escapeHtml(item.Name)}"`;
-    } else {
-        actionAttribute = '';
     }
 
     const className = resolveCardCssClasses({
@@ -1078,7 +1075,7 @@ function buildCard(index, item, apiClient, options) {
         additionalCardContent += getHoverMenuHtml(item, action);
     }
 
-    return '<' + tagName + ' data-index="' + index + '"' + timerAttributes + actionAttribute + ' data-isfolder="' + (item.IsFolder || false) + '" data-serverid="' + (item.ServerId || options.serverId) + '" data-id="' + (item.Id || item.ItemId) + '" data-type="' + item.Type + '"' + mediaTypeData + collectionTypeData + channelIdData + pathData + positionTicksData + collectionIdData + playlistIdData + contextData + parentIdData + startDate + endDate + ' data-prefix="' + escapeHtml(prefix) + '" class="' + className + '"' + ariaLabelAttribute + '>' + cardImageContainerOpen + innerCardFooter + cardImageContainerClose + overlayButtonsHtml + additionalCardContent + cardScalableClose + outerCardFooter + cardBoxClose + '</' + tagName + '>';
+    return '<' + tagName + ' data-index="' + index + '"' + timerAttributes + ' ' + actionAttribute + ' data-isfolder="' + (item.IsFolder || false) + '" data-serverid="' + (item.ServerId || options.serverId) + '" data-id="' + (item.Id || item.ItemId) + '" data-type="' + item.Type + '"' + mediaTypeData + collectionTypeData + channelIdData + pathData + positionTicksData + collectionIdData + playlistIdData + contextData + parentIdData + startDate + endDate + ' data-prefix="' + escapeHtml(prefix) + '" class="' + className + '"' + ariaLabelAttribute + '>' + cardImageContainerOpen + innerCardFooter + cardImageContainerClose + overlayButtonsHtml + additionalCardContent + cardScalableClose + outerCardFooter + cardBoxClose + '</' + tagName + '>';
 }
 
 /**

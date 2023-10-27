@@ -13,7 +13,7 @@ import {
     getPostersPerRow,
     isResizable,
     isUsingLiveTvNaming,
-    resolveAction, resolveBlurHashAttribute, resolveCardBoxCssClasses,
+    resolveAction, resolveActionAttribute, resolveBlurHashAttribute, resolveCardBoxCssClasses,
     resolveCardCssClasses,
     resolveCardImageContainerCssClasses,
     resolveMixedShapeByAspectRatio, resolveOverlayButtons
@@ -514,6 +514,12 @@ describe('resolveAction', () => {
     test('photo', () => expect(resolveAction({ defaultAction: 'link', isFolder: false, isPhoto: true })).toEqual('play'));
 
     test('default action is "play" and is folder', () => expect(resolveAction({ defaultAction: 'play', isFolder: true, isPhoto: true })).toEqual('link'));
+});
+
+describe('resolveActionAttribute', () => {
+    test('button', () => expect(resolveActionAttribute(true, 'play')).toEqual('data-action="play"'));
+
+    test('non-button', () => expect(resolveActionAttribute(false, 'play')).toEqual(''));
 });
 
 describe('resolveMixedShapeByAspectRatio', () => {
