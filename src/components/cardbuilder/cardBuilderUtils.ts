@@ -72,7 +72,9 @@ export const resolveAction = (opts: { defaultAction: string, isFolder: boolean, 
     }
 };
 
-export const resolveActionAttribute = (isButton: boolean, action: string) => isButton ? `data-action="${action}"` : '';
+export const resolveButtonActionAttribute = (isButton: boolean, action: string) => isButton ? `data-action="${action}"` : '';
+
+export const resolveButtonAriaLabelAttribute = (isButton: boolean, itemName: string) => isButton ? `aria-label="${escapeHtml(itemName)}"` : '';
 
 /**
  * Checks if the window is resizable.

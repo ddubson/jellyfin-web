@@ -32,11 +32,11 @@ import {
     getPostersPerRow,
     isResizable,
     isUsingLiveTvNaming,
-    resolveAction, resolveActionAttribute, resolveBlurHashAttribute,
+    resolveAction, resolveButtonActionAttribute, resolveBlurHashAttribute,
     resolveCardBoxCssClasses,
     resolveCardCssClasses,
     resolveCardImageContainerCssClasses,
-    resolveMixedShapeByAspectRatio, resolveOverlayButtons
+    resolveMixedShapeByAspectRatio, resolveOverlayButtons, resolveButtonAriaLabelAttribute
 } from './cardBuilderUtils';
 
 const enableFocusTransform = !browser.slow && !browser.edge;
@@ -1037,12 +1037,8 @@ function buildCard(index, item, apiClient, options) {
         timerAttributes += ' data-seriestimerid="' + item.SeriesTimerId + '"';
     }
 
-    const actionAttribute = resolveActionAttribute(tagName === 'button', action);
-    let ariaLabelAttribute = '';
-
-    if (tagName === 'button') {
-        ariaLabelAttribute = ` aria-label="${escapeHtml(item.Name)}"`;
-    }
+    const actionAttribute = resolveButtonActionAttribute(tagName === 'button', action);
+    const ariaLabelAttribute = resolveButtonAriaLabelAttribute(tagName === 'button', item.Name);
 
     const className = resolveCardCssClasses({
         shape: shape,
@@ -1075,7 +1071,7 @@ function buildCard(index, item, apiClient, options) {
         additionalCardContent += getHoverMenuHtml(item, action);
     }
 
-    return '<' + tagName + ' data-index="' + index + '"' + timerAttributes + ' ' + actionAttribute + ' data-isfolder="' + (item.IsFolder || false) + '" data-serverid="' + (item.ServerId || options.serverId) + '" data-id="' + (item.Id || item.ItemId) + '" data-type="' + item.Type + '"' + mediaTypeData + collectionTypeData + channelIdData + pathData + positionTicksData + collectionIdData + playlistIdData + contextData + parentIdData + startDate + endDate + ' data-prefix="' + escapeHtml(prefix) + '" class="' + className + '"' + ariaLabelAttribute + '>' + cardImageContainerOpen + innerCardFooter + cardImageContainerClose + overlayButtonsHtml + additionalCardContent + cardScalableClose + outerCardFooter + cardBoxClose + '</' + tagName + '>';
+    return '<' + tagName + ' data-index="' + index + '"' + timerAttributes + ' ' + actionAttribute + ' data-isfolder="' + (item.IsFolder || false) + '" data-serverid="' + (item.ServerId || options.serverId) + '" data-id="' + (item.Id || item.ItemId) + '" data-type="' + item.Type + '"' + mediaTypeData + collectionTypeData + channelIdData + pathData + positionTicksData + collectionIdData + playlistIdData + contextData + parentIdData + startDate + endDate + ' data-prefix="' + escapeHtml(prefix) + '" class="' + className + '" ' + ariaLabelAttribute + '>' + cardImageContainerOpen + innerCardFooter + cardImageContainerClose + overlayButtonsHtml + additionalCardContent + cardScalableClose + outerCardFooter + cardBoxClose + '</' + tagName + '>';
 }
 
 /**

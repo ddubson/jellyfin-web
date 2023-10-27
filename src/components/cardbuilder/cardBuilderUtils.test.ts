@@ -13,10 +13,10 @@ import {
     getPostersPerRow,
     isResizable,
     isUsingLiveTvNaming,
-    resolveAction, resolveActionAttribute, resolveBlurHashAttribute, resolveCardBoxCssClasses,
+    resolveAction, resolveButtonActionAttribute, resolveBlurHashAttribute, resolveCardBoxCssClasses,
     resolveCardCssClasses,
     resolveCardImageContainerCssClasses,
-    resolveMixedShapeByAspectRatio, resolveOverlayButtons
+    resolveMixedShapeByAspectRatio, resolveOverlayButtons, resolveButtonAriaLabelAttribute
 } from './cardBuilderUtils';
 import { BaseItemKind } from '@jellyfin/sdk/lib/generated-client/models/base-item-kind';
 
@@ -516,10 +516,16 @@ describe('resolveAction', () => {
     test('default action is "play" and is folder', () => expect(resolveAction({ defaultAction: 'play', isFolder: true, isPhoto: true })).toEqual('link'));
 });
 
-describe('resolveActionAttribute', () => {
-    test('button', () => expect(resolveActionAttribute(true, 'play')).toEqual('data-action="play"'));
+describe('resolveButtonActionAttribute', () => {
+    test('button', () => expect(resolveButtonActionAttribute(true, 'play')).toEqual('data-action="play"'));
 
-    test('non-button', () => expect(resolveActionAttribute(false, 'play')).toEqual(''));
+    test('non-button', () => expect(resolveButtonActionAttribute(false, 'play')).toEqual(''));
+});
+
+describe('resolveButtonAriaLabelAttribute', () => {
+    test('button', () => expect(resolveButtonAriaLabelAttribute(true, 'Item')).toEqual('aria-label="Item"'));
+
+    test('non-button', () => expect(resolveButtonAriaLabelAttribute(false, 'Item')).toEqual(''));
 });
 
 describe('resolveMixedShapeByAspectRatio', () => {
